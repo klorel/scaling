@@ -1,0 +1,7 @@
+
+# genere le fichier problem.dat en fonction de l'instance
+close problem.dat;
+printf "">problem.dat;
+printf "param: COLS: COL_LB COL_UB COL_INT COL_NAME := include ../cas_test/%s.col;\n", instance >> problem.dat;
+printf "param: ROWS: ROW_LB ROW_UB ROW_NAME         := include ../cas_test/%s.row;\n", instance >> problem.dat;
+printf "param: ROW_COL: MAT_VAL                     := include ../cas_test/%s.mat;\n", instance >> problem.dat;

@@ -1,0 +1,70 @@
+reset;
+model problem.mod;
+param instance symbolic default "OptModel_0";
+
+include generate_dat.run;
+data problem.dat;
+
+option solver xpress;
+option xpress_options 'outlev 1';
+
+option solver clp;
+option clp_options 'outlev 1';
+
+
+# ----
+# Command scal(ing)  Whether to scale problem
+# ---- description
+# Scaling can help in solving problems which might otherwise fail because
+# of lack of accuracy.  It can also reduce the number of iterations.
+# It is not applied if the range of elements is small.  When unscaled
+# it is possible that there may be small primal and/or infeasibilities.
+# <Possible options for scaling are: off equi(librium) geo(metric) auto(matic);
+        # current  auto(matic)>
+# ----
+# Command perturb(ation)  Whether to perturb problem
+# ---- description
+# Perturbation helps to stop cycling, but Clp uses other measures for
+# this.  However large problems and especially ones with unit elements
+# and unit rhs or costs benefit from perturbation.  Normally Clp tries
+# to be intelligent, but you can switch this off.  The Clp library has
+# this off by default.  This program has it on by default.
+# <Possible options for perturbation are: on off;
+        # current  on>
+# ----
+
+problem scaling;
+
+let{c in COLS}scale_col[c] :=0;
+let{r in ROWS}scale_row[r] :=0;
+# display NZ_COL_LB;
+# display NZ_COL_UB;
+# fix{c in COLS diff (NZ_COL_LB union NZ_COL_UB)} scale_col[c];
+# fix{r in ROWS diff (NZ_ROW_LB union NZ_ROW_UB)} scale_row[r];
+fix{c in COLS:c<1e-1}scale_col[c];
+fix{r in ROWS:r>1e-1}scale_row[r];
+# fix scale_col;
+option presolve 10;
+option solver knitroampl;
+option knitro_options 'outlev=3 hessopt=6 opttol=1 opttolabs=1e-1';
+display _snvars;
+display _sncons;
+# write gqp;
+display scale_criterion;
+solve;
+display scale_criterion;
+# exit;
+# display union{c in COLS}{scale_col[c]};
+# display union{r in ROWS}{scale_row[r]};
+
+let{c in COLS}SCALE_COL[c] := scale_col[c];
+let{r in ROWS}SCALE_ROW[r] := scale_row[r];
+
+problem lp;
+option solver cbc;
+option cbc_options 'log=2 scaling=off perturb=off';
+# option cbc_options 'log=2 perturb=off';
+option presolve 0;
+# option solver ipopt;
+solve;
+# write mtoto;
